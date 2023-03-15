@@ -8,14 +8,14 @@ import json
 
 
 
-def calcul_box_map(xmin,xmax,ymin,ymax,shape_screen):
+def calcul_survey_area(xmin,xmax,ymin,ymax,shape_screen):
     return([xmin/shape_screen[0],ymin/shape_screen[1],xmax/shape_screen[0],ymax/shape_screen[1]]) # a calculer en pourcentage (xmin,ymin,xmax,ymax)
 
-def calcul_pos_relative(box_map,x_pos,y_pos):
-    if x_pos > box_map[0] and x_pos < box_map[2]:  
-        if y_pos > box_map[1] and y_pos < box_map[3]:
-            x_relatif = (x_pos-box_map[0])/(box_map[2]-box_map[0])
-            y_relatif = (y_pos-box_map[1])/(box_map[3]-box_map[1])
+def calcul_pos_relative(survey_area,x_pos,y_pos):
+    if x_pos > survey_area[0] and x_pos < survey_area[2]:  
+        if y_pos > survey_area[1] and y_pos < survey_area[3]:
+            x_relatif = (x_pos-survey_area[0])/(survey_area[2]-survey_area[0])
+            y_relatif = (y_pos-survey_area[1])/(survey_area[3]-survey_area[1])
             return x_relatif,y_relatif
         else:
             return None,None
@@ -63,7 +63,7 @@ def calcul_loc(x_rel,y_rel,coord_carte):
     y_coord = coord_carte[1] + y_rel*(coord_carte[3]-coord_carte[1] )
     return [x_coord,y_coord] 
 
-def et_to_fixation(path_to_fixation,box_map,path_info,path_to_result=None,geolocalisation=False,export_argument_on_result=False,export_argument_on_fixation=False,name_export='coord_fixation_on_map.csv'):
+def et_to_fixation(path_to_fixation,survey_area,path_info,path_to_result=None,geolocalisation=False,export_argument_on_result=False,export_argument_on_fixation=False,name_export='coord_fixation_on_map.csv'):
     
     try :
         f = open(path_info,)
@@ -109,7 +109,7 @@ def et_to_fixation(path_to_fixation,box_map,path_info,path_to_result=None,geoloc
                         liste_export_fixation.append(fixation[export_argument_on_fixation[k]][t])    
 
 
-        x_rel,y_rel = calcul_pos_relative(box_map,float(fixation["norm_pos_x"][k]),float(fixation["norm_pos_y"][k]))
+        x_rel,y_rel = calcul_pos_relative(survey_area,float(fixation["norm_pos_x"][k]),float(fixation["norm_pos_y"][k]))
         if x_rel != None:
             if path_to_result == None:
                 list =[world_index,id,(fixation["world_timestamp"][k]+offset)*1000,x_rel,y_rel,]
