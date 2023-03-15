@@ -25,7 +25,7 @@ example header :
 example 1: as soon as the image was changed, a line was added with the time of the change and the name of the new image.
 example 2: was a free map manipulation with several steps. every 100 ms the coordinates of the map were added as well as the step we were at (a button allowed to change) in order to be able to set the fixations to the closest possible state to reality
 
-export_argument_on_fixation: this is the list of additional elements that we want to have for each fixation point that are in the eye tracker export file, such as the dispersion 
+export_argument_on_fixation: this is the list of additional elements that we want to have for each fixation point that are in the eye tracker export file, such as the dispersion and duration
 
 geolocalisation : allows to know if the person wants the relative position of the points in relation to the display or to geolocate the points in case a map is displayed on the screen. In the case of geolocation the result file must have the coordinates of the corners of the map called : xmin,ymin,xmax,ymax
 
