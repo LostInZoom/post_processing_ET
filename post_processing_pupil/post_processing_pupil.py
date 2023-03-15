@@ -1,6 +1,5 @@
 import os
 import pandas as pd
-import matplotlib.pyplot as plt
 import csv
 import json
 
@@ -63,7 +62,7 @@ def calcul_loc(x_rel,y_rel,coord_carte):
     y_coord = coord_carte[1] + y_rel*(coord_carte[3]-coord_carte[1] )
     return [x_coord,y_coord] 
 
-def et_to_fixation(path_to_fixation,survey_area,path_info,path_to_result=None,geolocalisation=False,export_argument_on_result=False,export_argument_on_fixation=False,name_export='coord_fixation_on_map.csv'):
+def eye_tracker_to_fixation(path_to_fixation,survey_area,path_info,path_to_result=None,geolocalisation=False,export_argument_on_result=False,export_argument_on_fixation=False,name_export='coord_fixation_on_map.csv'):
     
     try :
         f = open(path_info,)
@@ -76,10 +75,10 @@ def et_to_fixation(path_to_fixation,survey_area,path_info,path_to_result=None,ge
    
     if "norm_pos_x" and "norm_pos_y" and "world_timestamp" and "fixation_id" and "world_index" and "dispersion" not in fixation.columns:
         raise KeyError("wrong format of the fixation file")
-    
-    for i in range(len(export_argument_on_fixation)):
-                if export_argument_on_fixation[i] not in fixation.columns:
-                    raise KeyError("the argument "+ export_argument_on_fixation[i]+" is not in the fixation file")
+    if export_argument_on_fixation != False:
+        for i in range(len(export_argument_on_fixation)):
+            if export_argument_on_fixation[i] not in fixation.columns:
+                raise KeyError("the argument "+ export_argument_on_fixation[i]+" is not in the fixation file")
    
 
     json_time = json.load(f)
@@ -184,11 +183,3 @@ def et_to_fixation(path_to_fixation,survey_area,path_info,path_to_result=None,ge
                 for i in range(len(coord_fixation)):
                     writer.writerow(coord_fixation[i])
 
-            
-width_im = 1704
-height_im =856
-     
-box_t  = [8/1920,(1080-(600+140))/1080,(1142+8)/1920,(1080-140)/1080] # a calculer en pourcentage (xmin,ymin,xmax,ymax)
-
-
-et_to_fixation("geolocalisation/fixations_on_surface_Surface 1.csv",box_t,"geolocalisation/info.player.json")
