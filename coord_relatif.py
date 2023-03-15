@@ -56,16 +56,14 @@ def state_screen(timestamp,result,offset,geolocalisation=False,export_argument=F
                 continue
             else:
                 break
-        return box,time,other
-  
+        return box,time,other 
 
 def calcul_loc(x_rel,y_rel,coord_carte):
     x_coord = coord_carte[0] + x_rel*(coord_carte[2]-coord_carte[0] )
     y_coord = coord_carte[1] + y_rel*(coord_carte[3]-coord_carte[1] )
     return [x_coord,y_coord] 
 
-
-def et_to_fixation(path_to_fixation,box_map,path_info,path_to_result=None,geolocalisation=False,export_argument_on_result=False,name_export='coord_fixation_on_map.csv'):
+def et_to_fixation(path_to_fixation,box_map,path_info,path_to_result=None,geolocalisation=False,export_argument_on_result=False,export_argument_on_fixation=False,name_export='coord_fixation_on_map.csv'):
     
     try :
         f = open(path_info,)
@@ -75,10 +73,14 @@ def et_to_fixation(path_to_fixation,box_map,path_info,path_to_result=None,geoloc
         fixation = pd.read_csv(path_to_fixation)
     except:
         print("Failed to load fixation")  
-    
+   
     if "norm_pos_x" and "norm_pos_y" and "world_timestamp" and "fixation_id" and "world_index" and "dispersion" not in fixation.columns:
         raise KeyError("wrong format of the fixation file")
-
+    
+    for i in range(len(export_argument_on_fixation)):
+                if export_argument_on_fixation[i] not in fixation.columns:
+                    raise KeyError("the argument "+ export_argument_on_fixation[i]+" is not in the fixation file")
+   
 
     json_time = json.load(f)
     start_time_system = float(json_time["start_time_system_s"]) # System Time at recording start
@@ -95,20 +97,34 @@ def et_to_fixation(path_to_fixation,box_map,path_info,path_to_result=None,geoloc
     if geolocalisation == True :
         if "xmin" and "ymin" and "xmax" and "ymax" not in result.columns:
             raise KeyError("error data")
+    
+    
     coord_fixation = []
     for k in range(len(fixation)):
         id = fixation["fixation_id"][k]
         world_index = fixation["world_index"][k]
-        dispersion = fixation["dispersion"][k]
+        if export_argument_on_fixation != False:
+            liste_export_fixation =[]
+            for k in range(len(export_argument_on_fixation)):
+                        liste_export_fixation.append(fixation[export_argument_on_fixation[k]][t])    
+
 
         x_rel,y_rel = calcul_pos_relative(box_map,float(fixation["norm_pos_x"][k]),float(fixation["norm_pos_y"][k]))
         if x_rel != None:
             if path_to_result == None:
-                coord_fixation.append([world_index,id,x_rel,y_rel,dispersion,(fixation["world_timestamp"][k]+offset)*1000])
+                list =[world_index,id,(fixation["world_timestamp"][k]+offset)*1000,x_rel,y_rel,]
+                if export_argument_on_fixation != False:
+                        for p in range(len(export_argument_on_fixation)):
+                            list.append(liste_export_fixation[p])
+                coord_fixation.append(list)
             else:
                 if geolocalisation == False:
                     time,other =  state_screen(fixation["world_timestamp"][k],result,offset,export_argument=export_argument_on_result)
-                    list = [world_index,id,time,x_rel,y_rel,dispersion]
+
+                    list = [world_index,id,time,x_rel,y_rel]
+                    if export_argument_on_fixation != False:
+                        for p in range(len(export_argument_on_fixation)):
+                            list.append(liste_export_fixation[p])
                     if export_argument_on_result != False:
                         for t in range(len(other)):
                             list.append(other[t])
@@ -117,7 +133,10 @@ def et_to_fixation(path_to_fixation,box_map,path_info,path_to_result=None,geoloc
                 else:
                     box,time,other = state_screen(fixation["world_timestamp"][k],result,offset,geolocalisation=geolocalisation,export_argument=export_argument_on_result)
                     x_loc,y_loc =calcul_loc(x_rel,y_rel,box)
-                    list = [world_index,id,time,x_loc,y_loc,dispersion]
+                    list = [world_index,id,time,x_loc,y_loc]
+                    if export_argument_on_fixation != False:
+                        for p in range(len(export_argument_on_fixation)):
+                            list.append(liste_export_fixation[p])
                     if export_argument_on_result != False:
                         for t in range(len(other)):
                             list.append(other[t])
@@ -127,43 +146,49 @@ def et_to_fixation(path_to_fixation,box_map,path_info,path_to_result=None,geoloc
     if path_to_result == None:
         with open(name_export, 'w', newline='') as file:
             writer = csv.writer(file)
-            writer.writerow(["world_index","id_fixation","x","y","dispersion","time"]) # rajouter le zoom
+            entete = ["world_index","id_fixation","time","x_rel","y_rel"]
+            if export_argument_on_fixation != False :
+                for t in range(len(export_argument_on_fixation)):
+                    entete.append(export_argument_on_fixation[t])
+            writer.writerow([entete]) # rajouter le zoom
             for i in range(len(coord_fixation)):
                 writer.writerow(coord_fixation[i])
     else:
         if geolocalisation == False:
-            if export_argument_on_result == False :
 
-                with open(name_export, 'w', newline='') as file:
-                    writer = csv.writer(file)
-                    writer.writerow(["world_index","id_fixation","time","x_rel","y_rel","dispersion"]) # rajouter le zoom
-                    for i in range(len(coord_fixation)):
-                        writer.writerow(coord_fixation[i])
-            else:
-                with open(name_export, 'w', newline='') as file:
-                    writer = csv.writer(file)
-                    entete = ["world_index","id_fixation","time","x_rel","y_rel","dispersion"]
+            with open(name_export, 'w', newline='') as file:
+                writer = csv.writer(file)
+                entete = ["world_index","id_fixation","time","x_rel","y_rel"]
+                if export_argument_on_fixation != False :
+                    for t in range(len(export_argument_on_fixation)):
+                        entete.append(export_argument_on_fixation[t])
+                if export_argument_on_result != False :
                     for t in range(len(export_argument_on_result)):
                         entete.append(export_argument_on_result[t])
-                    writer.writerow(entete) # rajouter le zoom
-                    for i in range(len(coord_fixation)):
-                        writer.writerow(coord_fixation[i])
+                writer.writerow(entete) # rajouter le zoom
+                for i in range(len(coord_fixation)):
+                    writer.writerow(coord_fixation[i])
 
         else:
-            if export_argument_on_result == False :
-                with open(name_export, 'w', newline='') as file:
-                    writer = csv.writer(file)
-                    writer.writerow(["world_index","id_fixation","time","x","y","dispersion"]) # rajouter le zoom
-                    for i in range(len(coord_fixation)):
-                        writer.writerow(coord_fixation[i])
-            else:
-                with open(name_export, 'w', newline='') as file:
-                    writer = csv.writer(file)
-                    entete = ["world_index","id_fixation","time","x","y","dispersion"]
+
+            with open(name_export, 'w', newline='') as file:
+                writer = csv.writer(file)
+                entete = ["world_index","id_fixation","time","x","y"]
+                if export_argument_on_fixation != False :
+                    for t in range(len(export_argument_on_fixation)):
+                        entete.append(export_argument_on_fixation[t])
+                if export_argument_on_result != False :
                     for t in range(len(export_argument_on_result)):
                         entete.append(export_argument_on_result[t])
-                    writer.writerow(entete) # rajouter le zoom
-                    for i in range(len(coord_fixation)):
-                        writer.writerow(coord_fixation[i])
+                writer.writerow(entete) # rajouter le zoom
+                for i in range(len(coord_fixation)):
+                    writer.writerow(coord_fixation[i])
 
             
+width_im = 1704
+height_im =856
+     
+box_t  = [8/1920,(1080-(600+140))/1080,(1142+8)/1920,(1080-140)/1080] # a calculer en pourcentage (xmin,ymin,xmax,ymax)
+
+
+et_to_fixation("geolocalisation/fixations_on_surface_Surface 1.csv",box_t,"geolocalisation/info.player.json")
