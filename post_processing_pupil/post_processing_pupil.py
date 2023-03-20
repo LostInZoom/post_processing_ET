@@ -104,7 +104,7 @@ def eye_tracker_to_fixation(path_to_fixation,survey_area,path_info,path_to_resul
         world_index = fixation["world_index"][k]
         if export_argument_on_fixation != False:
             liste_export_fixation =[]
-            for k in range(len(export_argument_on_fixation)):
+            for t in range(len(export_argument_on_fixation)):
                         liste_export_fixation.append(fixation[export_argument_on_fixation[k]][t])    
 
 

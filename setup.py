@@ -8,7 +8,7 @@ if sys.version_info[:2] < (3, 8):
 
 # General informations
 name = 'post_processing_pupil'
-version = '0.1.4'
+version = '0.1.5'
 description = 'Python package to calculte output fixation points produced by the pupil-core eye tracker'
 url = 'https://github.com/LostInZoom/post_processing_ET'
 author = 'Laura Wenclik'
